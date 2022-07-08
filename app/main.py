@@ -55,7 +55,10 @@ def get_posts():
 
 @app.get("/posts/{id}")
 def get_post(id: int):
-    post = find_post(id)
+    cursor.execute(""" SELECT * FROM post WHERE id = %s """,
+                    (str(id)))
+    post = cursor.fetchone()
+    
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post {id} was not found")
@@ -65,33 +68,42 @@ def get_post(id: int):
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_posts(post: Post):
     # create id for post by generating a random number
+    cursor.execute(""" INSERT INTO post (title, content, published) VALUES (%s, %s, %s) RETURNING *""", 
+                  (post.title, post.content, post.published))
+    '''
     post_dict = post.dict()
     post_dict['id'] = randrange(0, 1000000)
     my_posts.append(post_dict)
-    return {"added": post}
+    '''
+    new_post = cursor.fetchone()
+    # save post into the db, from stage to 
+    conn.commit()
+
+    return {"added": new_post}
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int):
     # to find the post index
-    index = find_post_index(id)
-    if index == None:
+    cursor.execute(""" DELETE FROM post WHERE id = %s RETURNING * """, (str(id)))
+    del_post = cursor.fetchone()
+    conn.commit()
+    
+    if not del_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post {id} does not exist")
-
-    my_posts.pop(index)
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.put("/posts/{id}")
 def update_post(id: int, post: Post):
-    index = find_post_index(id)
-    if index == None:
+    cursor.execute("""UPDATE post SET title = %s, content = %s, published = %s WHERE id = %sRETURNING *""",
+                    (post.title, post.content, post.published, str(id)))
+    updated_post = cursor.fetchone()
+    conn.commit()
+
+    if not updated_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post {id} cannot be found for update")
 
-    post_dict = post.dict()
-    post_dict['id'] = id
-    my_posts[index] = post_dict
-
-    return {"data": post_dict}
+    return {"data": updated_post}
