@@ -1,10 +1,15 @@
 from typing import Optional
-from fastapi import Response, status, HTTPException, FastAPI
+from fastapi import Depends, Response, status, HTTPException, FastAPI
 from pydantic import BaseModel
 from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
+from sqlalchemy.orm import Session
+from . import models
+from .database import engine, get_db
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -47,15 +52,19 @@ def find_post_index(id):
 async def root():
     return {"message": "welcome to my API"}
 
+@app.get('sqltest')
+def test_posts(db: Session = Depends(get_db)):
+    return {"status": "success"}
+
 @app.get("/posts")
 def get_posts():
-    cursor.execute("""SELECT * FROM post""")
+    cursor.execute("""SELECT * FROM posts""")
     posts = cursor.fetchall()
     return {"data": posts}
 
 @app.get("/posts/{id}")
 def get_post(id: int):
-    cursor.execute(""" SELECT * FROM post WHERE id = %s """,
+    cursor.execute(""" SELECT * FROM posts WHERE id = %s """,
                     (str(id)))
     post = cursor.fetchone()
     
@@ -68,7 +77,7 @@ def get_post(id: int):
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_posts(post: Post):
     # create id for post by generating a random number
-    cursor.execute(""" INSERT INTO post (title, content, published) VALUES (%s, %s, %s) RETURNING *""", 
+    cursor.execute(""" INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *""", 
                   (post.title, post.content, post.published))
     '''
     post_dict = post.dict()
@@ -84,7 +93,7 @@ def create_posts(post: Post):
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int):
     # to find the post index
-    cursor.execute(""" DELETE FROM post WHERE id = %s RETURNING * """, (str(id)))
+    cursor.execute(""" DELETE FROM posts WHERE id = %s RETURNING * """, (str(id)))
     del_post = cursor.fetchone()
     conn.commit()
     
@@ -97,7 +106,7 @@ def delete_post(id: int):
 
 @app.put("/posts/{id}")
 def update_post(id: int, post: Post):
-    cursor.execute("""UPDATE post SET title = %s, content = %s, published = %s WHERE id = %sRETURNING *""",
+    cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %sRETURNING *""",
                     (post.title, post.content, post.published, str(id)))
     updated_post = cursor.fetchone()
     conn.commit()
