@@ -13,7 +13,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # base class / model
 Base = declarative_base()
 
-# dependency
+# dependency: create session to db every time call
 def get_db():
     db = SessionLocal()
     try:
