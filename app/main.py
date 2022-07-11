@@ -1,12 +1,9 @@
-
-from turtle import pos
 from fastapi import FastAPI
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
-from sqlalchemy.orm import Session
-from . import models, schema, utils
-from .database import engine, get_db
+from . import models
+from .database import engine
 from .routers import post, user
 
 models.Base.metadata.create_all(bind=engine)

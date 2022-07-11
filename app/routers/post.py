@@ -5,17 +5,19 @@ from .. import models, schema
 from ..database import get_db
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/posts"
+)
 
 
-@router.get("/posts", response_model=List[schema.Post])
+@router.get("/", response_model=List[schema.Post])
 def get_posts(db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
     posts = db.query(models.Post).all()
     return posts
 
-@router.get("/posts/{id}", response_model=schema.Post)
+@router.get("/{id}", response_model=schema.Post)
 def get_post(id: int, db: Session = Depends(get_db)):
     # cursor.execute(""" SELECT * FROM posts WHERE id = %s """,
     #                (str(id)))
@@ -28,7 +30,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
 
     return post
 
-@router.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schema.Post)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schema.Post)
 def create_posts(post: schema.PostCreate, db: Session = Depends(get_db)):
 
     '''
@@ -52,7 +54,7 @@ def create_posts(post: schema.PostCreate, db: Session = Depends(get_db)):
 
     return new_post
 
-@router.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db: Session = Depends(get_db)):
     # to find the post index
     # cursor.execute(""" DELETE FROM posts WHERE id = %s RETURNING * """, (str(id)))
@@ -69,7 +71,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.put("/posts/{id}", response_model=schema.Post)
+@router.put("/{id}", response_model=schema.Post)
 def update_post(id: int, post: schema.PostCreate, db: Session = Depends(get_db)):
     '''
     cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %sRETURNING *""",
