@@ -130,9 +130,14 @@ def update_post(id: int, post: schema.PostCreate, db: Session = Depends(get_db))
 '''
 User sections
 '''
-@app.post("/users", status_code=status.HTTP_201_CREATED)
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schema.UserOut)
 def create_user(user: schema.UserCreate, db: Session = Depends(get_db)):
     new_user = models.User(**user.dict())
+    exist_email = db.query(models.User).filter(models.User.email == new_user.email).first()
+    if exist_email:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail=f"email {new_user.email} has been registered already")
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)

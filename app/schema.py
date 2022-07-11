@@ -1,4 +1,5 @@
-from datetime import datetime
+from ast import Str
+from datetime import date, datetime
 from turtle import st
 from pydantic import BaseModel, EmailStr
 
@@ -21,3 +22,10 @@ class Post(PostBase):
 class UserCreate(BaseModel):
     email: EmailStr # validate email
     password: str
+
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr
+    created_at: datetime
+    class Config:
+        orm_mode = True
