@@ -1,6 +1,6 @@
 from multiprocessing import synchronize
 from turtle import pos, title
-from typing import Optional
+from typing import Optional, List
 from fastapi import Depends, Response, status, HTTPException, FastAPI
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -46,14 +46,14 @@ def find_post_index(id):
 async def root():
     return {"message": "welcome to my API"}
 
-@app.get("/posts")
+@app.get("/posts", response_model=List[schema.Post])
 def get_posts(db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
     posts = db.query(models.Post).all()
-    return {"data": posts}
+    return posts
 
-@app.get("/posts/{id}")
+@app.get("/posts/{id}", response_model=schema.Post)
 def get_post(id: int, db: Session = Depends(get_db)):
     # cursor.execute(""" SELECT * FROM posts WHERE id = %s """,
     #                (str(id)))
@@ -64,9 +64,9 @@ def get_post(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post {id} was not found")
 
-    return {"post detail": post}
+    return post
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schema.Post)
 def create_posts(post: schema.PostCreate, db: Session = Depends(get_db)):
 
     '''
@@ -88,7 +88,7 @@ def create_posts(post: schema.PostCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_post)
 
-    return {"added": new_post}
+    return new_post
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db: Session = Depends(get_db)):
@@ -107,7 +107,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.put("/posts/{id}")
+@app.put("/posts/{id}", response_model=schema.Post)
 def update_post(id: int, post: schema.PostCreate, db: Session = Depends(get_db)):
     '''
     cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %sRETURNING *""",
@@ -124,4 +124,4 @@ def update_post(id: int, post: schema.PostCreate, db: Session = Depends(get_db))
     update_post.update(post.dict(), synchronize_session=False)
     db.commit()
 
-    return {"data": update_post.first()}
+    return update_post.first()
