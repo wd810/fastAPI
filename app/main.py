@@ -1,3 +1,4 @@
+import imp
 from multiprocessing import synchronize
 from turtle import pos, title
 from typing import Optional, List
@@ -6,7 +7,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
 from sqlalchemy.orm import Session
-from . import models, schema
+from . import models, schema, utils
 from .database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
@@ -132,6 +133,10 @@ User sections
 '''
 @app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schema.UserOut)
 def create_user(user: schema.UserCreate, db: Session = Depends(get_db)):
+
+    # hash password- user.password
+    user.password = utils.hash(user.password)
+
     new_user = models.User(**user.dict())
     exist_email = db.query(models.User).filter(models.User.email == new_user.email).first()
     if exist_email:
