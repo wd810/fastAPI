@@ -1,7 +1,7 @@
-from ast import Str
 from datetime import date, datetime
 from turtle import st
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 class PostBase(BaseModel):
     title: str
@@ -33,3 +33,10 @@ class UserOut(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    id: Optional[str] = None

@@ -1,7 +1,9 @@
 from fastapi import Depends, Response, status, HTTPException, APIRouter
 from typing import List
 from sqlalchemy.orm import Session
-from .. import models, schema
+
+from app import oauth2
+from .. import models, schema, oauth2
 from ..database import get_db
 
 
@@ -18,6 +20,7 @@ def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return posts
 
+
 @router.get("/{id}", response_model=schema.Post)
 def get_post(id: int, db: Session = Depends(get_db)):
     # cursor.execute(""" SELECT * FROM posts WHERE id = %s """,
@@ -31,9 +34,9 @@ def get_post(id: int, db: Session = Depends(get_db)):
 
     return post
 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schema.Post)
-def create_posts(post: schema.PostCreate, db: Session = Depends(get_db)):
 
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schema.Post)
+def create_posts(post: schema.PostCreate, db: Session = Depends(get_db), get_current_user: int = Depends(oauth2.get_current_user)):
     '''
     post_dict = post.dict()
     post_dict['id'] = randrange(0, 1000000)
