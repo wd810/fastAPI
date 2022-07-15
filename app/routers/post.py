@@ -36,7 +36,9 @@ def get_post(id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schema.Post)
-def create_posts(post: schema.PostCreate, db: Session = Depends(get_db), get_current_user: int = Depends(oauth2.get_current_user)):
+def create_posts(post: schema.PostCreate, 
+                 db: Session = Depends(get_db), 
+                 get_current_user: int = Depends(oauth2.get_current_user)):
     '''
     post_dict = post.dict()
     post_dict['id'] = randrange(0, 1000000)
@@ -57,6 +59,9 @@ def create_posts(post: schema.PostCreate, db: Session = Depends(get_db), get_cur
     db.refresh(new_post)
 
     return new_post
+
+
+    
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db: Session = Depends(get_db)):
