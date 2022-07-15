@@ -38,7 +38,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schema.Post)
 def create_posts(post: schema.PostCreate, 
                  db: Session = Depends(get_db), 
-                 user_id: int = Depends(oauth2.get_current_user)):
+                 current_user: int = Depends(oauth2.get_current_user)):
     '''
     post_dict = post.dict()
     post_dict['id'] = randrange(0, 1000000)
@@ -52,8 +52,7 @@ def create_posts(post: schema.PostCreate,
     # conn.commit()
     
     # automatically unpack from python dict to models.Post
-    print(user_id)
-
+    print(current_user.email)
     new_post = models.Post(**post.dict())
     # new_post = models.Post(title=post.title, content=post.content, published=post.published)
     db.add(new_post)
@@ -66,7 +65,7 @@ def create_posts(post: schema.PostCreate,
     
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
+def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # to find the post index
     # cursor.execute(""" DELETE FROM posts WHERE id = %s RETURNING * """, (str(id)))
     # del_post = cursor.fetchone()
@@ -85,7 +84,7 @@ def delete_post(id: int, db: Session = Depends(get_db), user_id: int = Depends(o
 @router.put("/{id}", response_model=schema.Post)
 def update_post(id: int, post: schema.PostCreate, 
                 db: Session = Depends(get_db), 
-                user_id: int = Depends(oauth2.get_current_user)):
+                current_user: int = Depends(oauth2.get_current_user)):
     '''
     cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %sRETURNING *""",
                     (post.title, post.content, post.published, str(id)))
