@@ -66,7 +66,7 @@ def create_posts(post: schema.PostCreate,
     
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db: Session = Depends(get_db)):
+def delete_post(id: int, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
     # to find the post index
     # cursor.execute(""" DELETE FROM posts WHERE id = %s RETURNING * """, (str(id)))
     # del_post = cursor.fetchone()
@@ -83,7 +83,9 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{id}", response_model=schema.Post)
-def update_post(id: int, post: schema.PostCreate, db: Session = Depends(get_db)):
+def update_post(id: int, post: schema.PostCreate, 
+                db: Session = Depends(get_db), 
+                user_id: int = Depends(oauth2.get_current_user)):
     '''
     cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %sRETURNING *""",
                     (post.title, post.content, post.published, str(id)))
