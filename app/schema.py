@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from turtle import st
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, conint
 from typing import Optional
 
 class PostBase(BaseModel):
@@ -42,3 +42,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[str] = None
+
+class Vote(BaseModel):
+    post_id: int
+    dir: conint(le=1)  # 1: vote; 0: delete
