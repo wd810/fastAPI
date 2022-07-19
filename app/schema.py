@@ -3,14 +3,6 @@ from turtle import st
 from pydantic import BaseModel, EmailStr, conint
 from typing import Optional
 
-class PostBase(BaseModel):
-    title: str
-    content: str
-    published: bool = True
-
-class PostCreate(PostBase):
-    pass
-
 # define response data format for users
 class UserCreate(BaseModel):
     email: EmailStr # validate email
@@ -26,6 +18,17 @@ class UserOut(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+
+'''
+posts
+'''
+class PostBase(BaseModel):
+    title: str
+    content: str
+    published: bool = True
+class PostCreate(PostBase):
+    pass
 class Post(PostBase):
     id: int
     created_at: datetime
@@ -34,6 +37,14 @@ class Post(PostBase):
     class Config:
         orm_mode = True
 
+class PostOut(BaseModel):
+    Post: Post
+    votes: int
+    class Config:
+        orm_mode = True
+'''
+token
+'''
 class Token(BaseModel):
     access_token: str
     token_type: str
