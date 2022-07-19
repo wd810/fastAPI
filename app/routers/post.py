@@ -22,23 +22,24 @@ def get_posts(db: Session = Depends(get_db),
               limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""SELECT * FROM posts""")
     # posts = cursor.fetchall()
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    #posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
+    # posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
 
     # SQL join in sqlalchemy
-    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, 
-                       models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).all()
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, 
+                       models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
 
-    return results
+    return posts
 
 
-@router.get("/{id}", response_model=schema.Post)
+@router.get("/{id}", response_model=schema.PostOut)
 def get_post(id: int, db: Session = Depends(get_db),
              current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute(""" SELECT * FROM posts WHERE id = %s """,
     #                (str(id)))
     # post = cursor.fetchone()
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    # post = db.query(models.Post).filter(models.Post.id == id).first()
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, 
+                       models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).first()
 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
