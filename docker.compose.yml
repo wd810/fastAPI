@@ -1,0 +1,25 @@
+version: "3"
+services:
+  api:
+    build: .
+    depends_on:
+      - postgres
+    ports:
+        - <port on localhost>:<port on container>
+    volumes:
+      - ./:/usr/src/app
+    command: uvicore app.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - ./.env
+
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=fastapi
+    
+    volume:
+      - postgres-db: /var/lib/postgresql/data
+
+volumes:
+  postgres-db:
