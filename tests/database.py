@@ -16,7 +16,7 @@ engine = create_engine(SQLALCHEMY_DATEBASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@pytest.fixture
+@pytest.fixture()
 def session():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
@@ -28,7 +28,7 @@ def session():
 
 
 
-@pytest.fixture
+@pytest.fixture()
 def client(session):
     def overrid_get_db():
         try:

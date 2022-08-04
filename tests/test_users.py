@@ -1,12 +1,20 @@
+import pytest
 from .database import client, session
 from app import schema
 
 
-def test_root(client):
-    res = client.get("/")
-    print(res.json)
-    assert res.json().get('message') == 'welcome to my API'
-    assert res.status_code == 200
+'''
+make every test function independently
+'''
+@pytest.fixture
+def test_user(client):
+    user_data = {"email": "test_login@123.com", "password": "password123"}
+    res = client.post("/users/", json=user_data)
+    
+    assert res.status_code == 201
+    new_user = res.json()
+    new_user['password'] = user_data['password']
+    return new_user
 
 
 
@@ -16,3 +24,9 @@ def test_creat_user(client):
     test_user = schema.UserOut(**res.json())
     assert test_user.email == "hello@456.com"
     assert res.status_code == 201
+
+
+def test_login_user(client, test_user):
+    res = client.post("/login", data={"username": test_user['email'], "password": test_user['password']})
+    login_res = schema.Token(**res.json)
+    assert res.status_code == 200
