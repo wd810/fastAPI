@@ -1,10 +1,8 @@
-from fastapi.testclient import TestClient
-from app.main import app
+from .database import client, session
 from app import schema
 
-client = TestClient(app)
 
-def test_root():
+def test_root(client):
     res = client.get("/")
     print(res.json)
     assert res.json().get('message') == 'welcome to my API'
@@ -12,7 +10,7 @@ def test_root():
 
 
 
-def test_creat_user():
+def test_creat_user(client):
     res = client.post("/users/", json={"email": "hello@456.com", "password": "pass1123"})
     
     test_user = schema.UserOut(**res.json())
