@@ -1,6 +1,8 @@
 import pytest
+from jose import jwt
 from .database import client, session
 from app import schema
+from app.config import settings
 
 
 '''
@@ -26,7 +28,14 @@ def test_creat_user(client):
     assert res.status_code == 201
 
 
+
 def test_login_user(client, test_user):
     res = client.post("/login", data={"username": test_user['email'], "password": test_user['password']})
-    login_res = schema.Token(**res.json)
+    login_res = schema.Token(**res.json())
+    payload = jwt.decode(login_res.access_token, 
+                         settings.secret_key, 
+                         algorithms=[settings.algorithm])
+    id: str = payload.get("user_id")
     assert res.status_code == 200
+    assert id == test_user['id']
+    assert login_res.token_type == 'bearer'
