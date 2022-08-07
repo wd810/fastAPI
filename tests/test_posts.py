@@ -1,3 +1,5 @@
+import json
+from operator import truediv
 import pytest
 from app import schema
 
@@ -83,4 +85,24 @@ def test_delete_post_success(authorized_client, test_user, get_test_posts):
 def test_delete_post_not_exist(authorized_client, test_user, get_test_posts):
     res = authorized_client.delete("/posts/999999")
     assert res.status_code == 404
+
+
+def test_delete_other_user_post(authorized_client, test_user, get_test_posts):
+    res = authorized_client.delete(f"/posts/{get_test_posts[3].id}")
+    assert res.status_code == 403
+
+
+'''
+test update....
+'''
+def test_update_post(authorized_client, test_user, get_test_posts):
+    data = {
+        "title": "updated title",
+        "content": "updated content",
+        "published": True
+    }
+    res = authorized_client.put(f"/posts/{get_test_posts[0].id}", json=data)
+    update_post = schema.Post(**res.json())
+    assert res.status_code == 200
+    assert update_post.title == data['title']
 

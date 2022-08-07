@@ -26,7 +26,7 @@ def get_posts(db: Session = Depends(get_db),
 
     # SQL join in sqlalchemy
     posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, 
-                       models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+                     models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
 
     return posts
 
@@ -39,7 +39,7 @@ def get_post(id: int, db: Session = Depends(get_db),
     # post = cursor.fetchone()
     # post = db.query(models.Post).filter(models.Post.id == id).first()
     post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, 
-                       models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).first()
+                    models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).first()
 
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -65,7 +65,6 @@ def create_posts(post: schema.PostCreate,
     # conn.commit()
     
     # automatically unpack from python dict to models.Post
-    print(current_user.email)
     new_post = models.Post(owner_id=current_user.id, **post.dict())
     # new_post = models.Post(title=post.title, content=post.content, published=post.published)
     db.add(new_post)
@@ -84,10 +83,14 @@ def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depe
     # del_post = cursor.fetchone()
     # conn.commit()
     post = db.query(models.Post).filter(models.Post.id == id)
-
     if post.first() == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post {id} does not exist")
+
+    if post.first().owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail=f"user {current_user.id} is not allowed to do so.")
+    
     post.delete(synchronize_session=False)
     db.commit()
 
