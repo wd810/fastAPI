@@ -113,6 +113,10 @@ def update_post(id: int, post: schema.PostCreate,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post {id} cannot be found for update")
 
+    if update_post.first().owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail=f"user {current_user.id} is not allowed to do so")
+
     update_post.update(post.dict(), synchronize_session=False)
     db.commit()
 

@@ -106,3 +106,30 @@ def test_update_post(authorized_client, test_user, get_test_posts):
     assert res.status_code == 200
     assert update_post.title == data['title']
 
+
+def test_update_other_user_posts(authorized_client, test_user, get_test_posts):
+    data = {
+        "title": "updated Post 4",
+        "content": "updated content",
+        "published": True
+    }
+    res = authorized_client.put(f"/posts/{get_test_posts[3].id}", json=data)
+    assert res.status_code == 403
+
+def test_unauthorized_user_update_post(client, test_user, get_test_posts):
+    data = {
+        "title": "updated Post 4",
+        "content": "updated content",
+        "published": True
+    }
+    res = client.put(f"/posts/{get_test_posts[0].id}", json=data)
+    assert res.status_code == 401
+
+def test_update_post_not_exist(authorized_client, test_user, get_test_posts):
+    data = {
+        "title": "updated Post 4",
+        "content": "updated content",
+        "published": True
+    }
+    res = authorized_client.put("/posts/999999", json=data)
+    assert res.status_code == 404
